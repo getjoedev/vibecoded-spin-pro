@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    volumes:
+      - ./backend:/var/www
+    environment:
+      - REDIS_HOST=cache
+    depends_on:
+      - database
+      - cache
+
+  cache:
+    image: redis:alpine
+    container_name: laravel_redis
+    ports:
+      - "6379:6379"
+      
+  # Vue Frontend
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev -- --host"
+
+  # Database (PostgreSQL or MySQL)
+  database:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=laravel
+      - POSTGRES_USER=sail
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
